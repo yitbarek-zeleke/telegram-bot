@@ -14,7 +14,7 @@ from telegram.ext import (
 from telegram.constants import ChatAction
 
 # ---------------- TOKEN ----------------
-TOKEN = "YOUR_NEW_BOT_TOKEN"
+TOKEN = "8510643071:AAHYfu9bG_nSXAIUiRiwtQwrMgjbovb-znk"
 
 # ---------------- FLASK SERVER ----------------
 app_web = Flask('')
