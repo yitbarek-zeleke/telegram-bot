@@ -1,9 +1,33 @@
-from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
-from telegram.constants import ChatAction
+from flask import Flask
+from threading import Thread
+import os
 import asyncio
 
-TOKEN = "8510643071:AAHYfu9bG_nSXAIUiRiwtQwrMgjbovb-znk"
+from telegram import Update, ReplyKeyboardMarkup
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    MessageHandler,
+    ContextTypes,
+    filters,
+)
+from telegram.constants import ChatAction
+
+# ---------------- TOKEN ----------------
+TOKEN = "YOUR_NEW_BOT_TOKEN"
+
+# ---------------- FLASK SERVER ----------------
+app_web = Flask('')
+
+@app_web.route('/')
+def home():
+    return "Bot is running!"
+
+def run_web():
+    port = int(os.environ.get("PORT", 10000))
+    app_web.run(host='0.0.0.0', port=port)
+
+Thread(target=run_web).start()
 
 # ---------------- MENU ----------------
 menu = ReplyKeyboardMarkup(
@@ -58,7 +82,17 @@ def analyze(url):
         risk_count += 1
 
     # suspicious words
-    keywords = ["login", "free", "verify", "bonus", "gift", "password", "bank", "account"]
+    keywords = [
+        "login",
+        "free",
+        "verify",
+        "bonus",
+        "gift",
+        "password",
+        "bank",
+        "account"
+    ]
+
     for k in keywords:
         if k in url:
             score -= 10
@@ -71,13 +105,15 @@ def analyze(url):
         reasons.append("Risky domain extension")
         risk_count += 2
 
-    # FINAL RESULT LOGIC
+    # FINAL RESULT
     if score >= 80 and risk_count == 0:
         status = "🟢 SAFE"
         desc = "This link looks clean and secure."
+
     elif score >= 50 or risk_count == 1:
         status = "🟡 SUSPICIOUS"
         desc = "This link may be risky. Check before opening."
+
     else:
         status = "🔴 DANGEROUS"
         desc = "This link is unsafe. Avoid clicking it."
@@ -99,10 +135,12 @@ async def reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # only links allowed
     if "http" not in text:
-        await update.message.reply_text("⚠ Please send a valid link (http or https)")
+        await update.message.reply_text(
+            "⚠ Please send a valid link (http or https)"
+        )
         return
 
-    # ⌨️ typing animation
+    # typing animation
     await context.bot.send_chat_action(
         chat_id=update.effective_chat.id,
         action=ChatAction.TYPING
